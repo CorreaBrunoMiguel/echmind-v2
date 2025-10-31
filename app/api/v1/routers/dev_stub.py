@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from app.domain.ports import EchoRepo, TraceRepo, PulseSource, AnchorRepo
 from app.api.deps import (
     get_echo_repo, get_trace_repo, get_pulse_source, get_anchor_repo
@@ -20,6 +20,11 @@ async def di_check(
         "pulse_source": pulse_source.__class__.__name__,
         "anchor_repo": anchor_repo.__class__.__name__,
     }
+
+@router.get('/boom')
+async def boom():
+    # Dispara HTTPException para testarmos Problem Details
+    raise HTTPException(status_code=400, detail="Explosão controlada para testes")
 
 dev_stub_router = router
 __all__ = ["router", "dev_stub_router"]

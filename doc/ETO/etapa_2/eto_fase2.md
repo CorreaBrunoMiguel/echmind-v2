@@ -128,12 +128,86 @@ python -c "import app.domain.ports as p; print([a for a in dir(p) if a.endswith(
 
 ---
 
-## 🧩 Matriz ECL (Sprint 1)
+perfeito — bora carimbar a Tarefa 2 com testes e um commit limpinho, e já deixo
+a próxima Tarefa (T3) pronta no formato **Registro Orion — Pt.1**.
 
-- **Act (ENGINE):** handlers `status/health`
-- **State (MEMORY):** n/a (definição de ports na T2; sem persistência)
-- **Context (SPACE):** `X-Correlation-Id` (+ `X-API-Version`)
-- **Event/Echo:** preparado (emissão futura via outbox)
-- **Trace:** spans OTel ativos na T1
+## Comandos rápidos de teste
+
+```bash
+# 1) Executar TODOS os testes
+poetry run pytest -q
+
+# 2) Só o contrato de ports/stubs/DI (Tarefa 2)
+poetry run pytest -q tests/test_ports_contract.py
+
+# 3) Subir o serviço para checagens manuais (em outro terminal)
+poetry run uvicorn app.main:app --reload
+
+# 4) Verificações manuais (headers e DI)
+curl -i http://localhost:8000/api/v1/status | grep -E "X-Correlation-Id|X-API-Version"
+curl -s http://localhost:8000/api/v1/healthz
+curl -s http://localhost:8000/api/v1/readyz
+curl -s http://localhost:8000/api/v1/dev/di-check | jq .
+# (se não tiver jq: apenas remova " | jq .")
+```
+
+## Mensagem de commit (Tarefa 2 — geral, com emoji)
+
+```git
+✨ feat(engine): ports ECL + stubs + DI (rota /api/v1/dev/di-check)
+```
+
+---
+
+### Tarefa 3 — DTOs de Transporte (Pydantic) + Problem Details (RFC7807)
+
+- **ID:** E2-F1-S1-T3
+- **Branch base:** develop
+- **Branch de trabalho:**
+  `feature/e2-f1-s1-t3-transport-schemas-problem-details`
+- **Objetivo (one-liner):** Definir schemas Pydantic (ECL) e padronizar erros em
+  `application/problem+json` com `X-Correlation-Id`.
+
+**Escopo**:
+
+- Schemas Pydantic: `StatusOut`, `EchoIn`, `EchoOut`, `TraceOut`, `PulseOut`,
+  `Problem`
+- Mapeador de erros RFC7807 em `app/api/errors.py` (inclui `correlation_id` e
+  `instance`)
+- Handler de exemplo que dispara `Problem` para teste
+- Ajuste de responses para sempre devolver `X-API-Version` e `X-Correlation-Id`
+
+**Critérios de Aceite (verificáveis)**:
+
+- Qualquer exceção mapeada retorna `application/problem+json` com: `type`,
+  `title`, `status`, `detail`, `instance`, `correlation_id`
+- `GET /api/v1/status` segue válido e inclui cabeçalhos
+- Teste valida headers + estrutura completa de `Problem`
+
+**Artefatos/Interfaces**:
+
+- Headers: `X-Correlation-Id`, `X-API-Version`
+- Content-Type de erro: `application/problem+json`
+
+**Diretórios/Arquivos (root)**:
+
+- `app/api/schemas.py`
+- `app/api/errors.py`
+- `tests/test_problem_details.py`
+
+**Commit sugerido**:
+
+- `🛡️ feat(engine): DTOs Pydantic + Problem Details (RFC7807) com correlation id`
+
+**Riscos & rollback**:
+
+- Padronização de erro afetar rotas futuras — mitigado por testes de contrato;
+  rollback via revert
+
+**Documentos relacionados**:
+
+- `/doc/ETO/etapa_2/overview.md`
+- `/doc/ETO/etapa_2/eto_fase1.md`
+- `/doc/ETO/etapa_1_5/ECHO_CODEX.md`
 
 ---
